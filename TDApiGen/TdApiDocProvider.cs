@@ -6,7 +6,7 @@ public static class TdApiDocProvider
 
     public static async Task<string> GetXmlDocAsync()
     {
-        var client = new HttpClient();
+        using var client = new HttpClient();
         var response = await client.GetAsync(ApiDocUrl);
         return await response.Content.ReadAsStringAsync();
     }
