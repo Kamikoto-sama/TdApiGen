@@ -13,12 +13,12 @@ public static class TdApiGenerator
             foreach (var line in GenerateFuncDoc(func))
                 yield return line;
 
-            yield return GenerateFunSignature(func);
+            yield return GenerateFuncSignature(func);
             yield return string.Empty;
         }
     }
 
-    private static string GenerateFunSignature(LuaFunc func)
+    private static string GenerateFuncSignature(LuaFunc func)
     {
         var paramsStr = string.Join(", ", func.Params.Select(x => x.Name));
         return $"function {func.Name}({paramsStr}) end";
