@@ -1,17 +1,15 @@
 ﻿using System.Xml;
+using TDApiGen.Entities;
 
 namespace TDApiGen;
 
-public static class TdDocParser
+public static class TdApiDocParser
 {
-    public static LuaFunc[] Parse(string docXml)
+    public static IEnumerable<LuaFunc> Parse(string docXml)
     {
         var doc = new XmlDocument();
         doc.LoadXml(docXml);
-        return doc.DocumentElement!
-            .Cast<XmlElement>()
-            .Select(ParseFunc)
-            .ToArray();
+        return doc.DocumentElement!.Cast<XmlElement>().Select(ParseFunc);
     }
 
     private static LuaFunc ParseFunc(XmlElement func)
@@ -29,8 +27,7 @@ public static class TdDocParser
             return null;
 
         var name = returnValue.GetAttr("name");
-        var type = ParseType(returnValue.GetAttr("type"));
-        var desc = returnValue.GetAttr("desc");
+        var (type, desc) = ParseType(returnValue.GetAttr("type"), returnValue.GetAttr("desc"));
         return new LuaFuncReturn(name, type, desc);
     }
 
@@ -39,9 +36,8 @@ public static class TdDocParser
         return @params.Select(param =>
         {
             var name = param.GetAttr("name");
-            var type = ParseType(param.GetAttr("type"));
             var optional = bool.Parse(param.GetAttr("optional"));
-            var desc = param.GetAttr("desc");
+            var (type, desc) = ParseType(param.GetAttr("type"), param.GetAttr("desc"));
             return new LuaFuncParam(name, type, optional, desc);
         }).ToArray();
     }
@@ -54,15 +50,16 @@ public static class TdDocParser
         "table"
     };
 
-    private static string ParseType(string type)
+    private static (string type, string desc) ParseType(string type, string desc)
     {
         if (luaTypes.Contains(type))
-            return type;
+            return (type, desc);
 
+        desc = $"[{type}] {desc}";
         return type switch
         {
-            "float" or "int" => $"number [{type}]",
-            _ => $"any [{type}]"
+            "float" or "int" => ("number", desc),
+            _ => ("any", desc)
         };
     }
 
